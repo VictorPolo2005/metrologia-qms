@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Qualidade e Metrologia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans relative">
+    
+    <!-- OVERLAY DE CARREGAMENTO (ETL) -->
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[100]">
+    <div class="text-center max-w-md w-full px-6">
+        <svg class="animate-spin h-14 w-14 text-blue-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+
+        <h2 class="text-2xl font-bold text-white mb-2">Sincronizando Banco de Dados</h2>
+        <p id="loading-text" class="text-blue-200 mb-4">Buscando registros na nuvem, aguarde...</p>
+
+        <!-- BARRA DE PROGRESSO -->
+        <div class="w-full bg-slate-700 rounded-full h-2 mb-2 overflow-hidden">
+            <div id="loading-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-200" style="width: 0%"></div>
+        </div>
+
+        <!-- CONTAGEM + PORCENTAGEM -->
+        <p id="loading-stats" class="text-sm text-blue-200 font-medium">0%</p>
+    </div>
+</div>
+
+    <!-- NAVEGAÇÃO -->
+    <nav class="bg-slate-900 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="font-bold text-xl tracking-wide flex items-center gap-2">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    QMS Aeronáutico
+                </div>
+                <div class="flex space-x-2">
+                    <button id="btn-menu-apontamento" class="px-3 py-2 rounded-md text-sm font-medium bg-blue-600 transition">Apontamento</button>
+                    <button id="btn-menu-dashboards" class="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white transition">Dashboards</button>
+                    <button id="btn-menu-tabela" class="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white transition">Tabela de Dados</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-6 mt-4 relative">
+
+        <!-- ABA 1: APONTAMENTO -->
+        <section id="tela-apontamento" class="block">
+            <div class="bg-white p-8 rounded-xl shadow-sm border-t-4 border-blue-600 max-w-3xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6 border-b pb-2 text-slate-800">Registrar Inspeção GD&T</h2>
+                
+                <form id="form-inspecao" class="space-y-5">
+                    <!-- Identificação -->
+                    <form id="form-inspecao" class="space-y-5">
+    <!-- Identificação -->
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-semibold text-slate-700">OP</label>
+            <input type="text" id="op" name="ordem_fabricacao" placeholder="OP (ex: OP-2026-X)" class="w-full border border-slate-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700">Aeronave (SN)</label>
+            <input type="text" id="aeronave" name="numero_aeronave" placeholder="SN (ex: SN-994)" class="w-full border border-slate-300 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" required>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-semibold text-slate-700">Peça</label>
+            <input type="text" id="codigo_peca" name="codigo_peca" placeholder="Ex: Nervura Central" class="w-full border border-slate-300 p-2 rounded outline-none" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700">Característica</label>
+            <select id="caracteristica_gdt" name="caracteristica_gdt" class="w-full border border-slate-300 p-2 rounded outline-none" required>
+                <option value="">Selecione...</option>
+                <option value="Planicidade">Planicidade</option>
+                <option value="Cilindricidade">Cilindricidade</option>
+                <option value="Posição">Posição</option>
+                <option value="Batimento">Batimento</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Medições (Bloco Cinza) -->
+    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+        <label class="block text-sm font-semibold text-slate-700 mb-3">Controle Dimensional (mm)</label>
+        <p class="text-xs text-slate-400 mb-2">Use ponto como separador decimal (ex: 100.5)</p>
+        <div class="grid grid-cols-2 gap-4 mb-3">
+            <div>
+                <label class="text-xs text-slate-500">Nominal</label>
+                <input type="number" id="nominal" name="valor_nominal" step="0.001" class="w-full border border-slate-300 p-2 rounded outline-none" required>
+            </div>
+            <div>
+                <label class="text-xs text-slate-500 font-bold text-blue-700">Real (Medido)</label>
+                <input type="number" id="medido" name="valor_medido" step="0.001" class="w-full border border-blue-400 p-2 rounded outline-none font-bold text-blue-700 bg-blue-50" required>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-xs text-slate-500">Tolerância Superior (+)</label>
+                <input type="number" id="tol_sup" name="tolerancia_superior" step="0.001" class="w-full border border-slate-300 p-2 rounded outline-none" required>
+            </div>
+            <div>
+                <label class="text-xs text-slate-500">Tolerância Inferior (-)</label>
+                <input type="number" id="tol_inf" name="tolerancia_inferior" step="0.001" class="w-full border border-slate-300 p-2 rounded outline-none" required>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status e Motivo -->
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-semibold text-slate-700">Decisão (Automática)</label>
+            <select id="status" name="status" class="w-full border border-slate-300 p-2 rounded outline-none font-bold text-lg" required>
+                <option value="CONFORME" class="text-green-600">CONFORME</option>
+                <option value="RETRABALHO" class="text-yellow-600">RETRABALHO</option>
+                <option value="SUCATA" class="text-red-600">SUCATA</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700">Motivo</label>
+            <input type="text" id="motivo" name="motivo_nao_conformidade" placeholder="Motivo (Se Retrabalho/Sucata)" class="w-full border border-slate-300 p-2 rounded outline-none bg-slate-100" value="N/A" disabled>
+        </div>
+    </div>
+
+    <!-- Inspetor -->
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-semibold text-slate-700">Matrícula do Inspetor</label>
+            <input type="text" id="registro_inspetor" name="registro_inspetor" class="w-full border border-slate-300 p-2 rounded outline-none" required>
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700">Nome Completo</label>
+            <input type="text" id="nome_inspetor" name="nome_inspetor" class="w-full border border-slate-300 p-2 rounded outline-none" required>
+        </div>
+    </div>
+
+    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md text-lg mt-4">
+        Salvar Apontamento
+    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ABA 2: DASHBOARDS -->
+        <section id="tela-dashboards" class="hidden">
+            <!-- FILTROS ANALÍTICOS DO DASHBOARD -->
+<div id="dash-filtros" class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-slate-200">
+    <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Filtros Analíticos</h3>
+        <button type="button" id="dash-btn-limpar" class="text-sm text-blue-600 hover:underline">
+            Limpar Filtros
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+        <!-- Período -->
+        <div class="md:col-span-2">
+            <label class="text-xs font-semibold text-slate-500">Período de Inspeção</label>
+            <div class="flex gap-2 mt-1">
+                <input type="date" id="dash-filtro-data-inicio"
+                       class="w-full border border-slate-300 rounded p-1.5 text-sm outline-none">
+                <input type="date" id="dash-filtro-data-fim"
+                       class="w-full border border-slate-300 rounded p-1.5 text-sm outline-none">
+            </div>
+        </div>
+
+        <!-- OP (com datalist) -->
+        <div>
+            <label class="text-xs font-semibold text-slate-500">Ordem de Fab. (OP)</label>
+            <input type="text" id="dash-filtro-op" list="dash-lista-op"
+                   placeholder="Buscar OP..."
+                   class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none"
+                   autocomplete="off">
+            <datalist id="dash-lista-op"></datalist>
+        </div>
+
+        <!-- Peça -->
+        <div>
+            <label class="text-xs font-semibold text-slate-500">Código da Peça</label>
+            <select id="dash-filtro-peca"
+                    class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none">
+                <option value="">Todas</option>
+            </select>
+        </div>
+
+        <!-- GD&T -->
+        <div>
+            <label class="text-xs font-semibold text-slate-500">Caract. GD&amp;T</label>
+            <select id="dash-filtro-gdt"
+                    class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none">
+                <option value="">Todas</option>
+            </select>
+        </div>
+
+        <!-- Status -->
+        <div>
+            <label class="text-xs font-semibold text-slate-500">Status</label>
+            <select id="dash-filtro-status"
+                    class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none">
+                <option value="">Todos</option>
+                <option value="CONFORME">CONFORME</option>
+                <option value="RETRABALHO">RETRABALHO</option>
+                <option value="SUCATA">SUCATA</option>
+            </select>
+        </div>
+
+        <!-- Inspetor (com datalist) -->
+        <div class="md:col-span-2">
+            <label class="text-xs font-semibold text-slate-500">Nome do Inspetor</label>
+            <input type="text" id="dash-filtro-inspetor" list="dash-lista-inspetor"
+                   placeholder="Nome..."
+                   class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none"
+                   autocomplete="off">
+            <datalist id="dash-lista-inspetor"></datalist>
+        </div>
+    </div>
+
+    <p id="dash-filtro-hint" class="text-xs text-slate-400 mt-2"></p>
+    <p id="dash-filtro-resumo" class="text-sm text-slate-500 mt-1"></p>
+</div>
+            <!-- Cards de KPI -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-slate-800">
+        <p class="text-sm font-semibold text-slate-500">Volume Analisado</p>
+        <p id="kpi-total" class="text-3xl font-black mt-1">0</p>
+    </div>
+    <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500">
+        <p class="text-sm font-semibold text-slate-500">Efetividade (FPY)</p>
+        <p id="kpi-efetividade" class="text-3xl font-black text-green-600 mt-1">0%</p>
+    </div>
+</div>
+            
+            <!-- Linha 1: Tendência (2 col) + Status (1 col) -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- ============ TENDÊNCIA ============ -->
+    <div class="bg-white p-6 rounded-xl shadow-sm relative border border-slate-200 lg:col-span-2">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-700">Tendência de Inspeções e Efetividade</h3>
+            <select id="tendencia-granularidade" class="border border-slate-300 text-sm rounded p-1 outline-none font-semibold text-slate-600">
+                <option value="dia">Diário</option>
+                <option value="semana">Semanal</option>
+                <option value="mes" selected>Mensal</option>
+            </select>
+        </div>
+
+        <!-- Cards complementares -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p class="text-xs text-slate-500 font-semibold">Variação vs Mês Anterior</p>
+                <p id="dash-variacao-mes" class="text-lg font-bold text-slate-800">---</p>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p class="text-xs text-slate-500 font-semibold">Melhor Período</p>
+                <p id="dash-melhor-periodo" class="text-lg font-bold text-slate-800">---</p>
+            </div>
+        </div>
+
+        <div class="relative h-72">
+            <canvas id="graficoTendencia"></canvas>
+        </div>
+    </div>
+
+    <!-- ============ STATUS ============ -->
+    <div class="bg-white p-6 rounded-xl shadow-sm relative border border-slate-200">
+        <h3 class="font-bold text-slate-700 mb-4 text-center">Distribuição por Status</h3>
+
+        <!-- Cards complementares (retrabalho, sucata, meta) -->
+        <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="bg-yellow-50 p-2 rounded-lg border border-yellow-200 text-center">
+                <p class="text-[10px] text-yellow-700 font-semibold uppercase">Retrab.</p>
+                <p id="dash-taxa-retrabalho" class="text-lg font-bold text-yellow-700">0%</p>
+            </div>
+            <div class="bg-red-50 p-2 rounded-lg border border-red-200 text-center">
+                <p class="text-[10px] text-red-700 font-semibold uppercase">Sucata</p>
+                <p id="dash-taxa-sucata" class="text-lg font-bold text-red-700">0%</p>
+            </div>
+            <div class="bg-blue-50 p-2 rounded-lg border border-blue-200 text-center">
+                <p class="text-[10px] text-blue-700 font-semibold uppercase">Meta 98%</p>
+                <p id="dash-meta-gap" class="text-lg font-bold text-blue-700">---</p>
+            </div>
+        </div>
+
+        <div class="relative h-72">
+            <canvas id="graficoStatus"></canvas>
+        </div>
+    </div>
+</div>
+
+            <!-- Linha 2: Pareto (largura total, abaixo) -->
+            <div class="bg-white p-6 rounded-xl shadow-sm relative border border-slate-200 mt-6">
+    <h3 class="font-bold text-slate-700 mb-4">Pareto de Defeitos</h3>
+
+    <!-- Cards complementares -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <p class="text-xs text-slate-500 font-semibold">Total Não Conformes</p>
+            <p id="dash-total-nc" class="text-lg font-bold text-slate-800">---</p>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <p class="text-xs text-slate-500 font-semibold">Ofensor #1</p>
+            <p id="dash-ofensor-1" class="text-sm font-bold text-slate-800 truncate">---</p>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <p class="text-xs text-slate-500 font-semibold">Top 3 Concentram</p>
+            <p id="dash-top3-pct" class="text-lg font-bold text-slate-800">---</p>
+        </div>
+        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <p class="text-xs text-blue-700 font-semibold">Ação Sugerida</p>
+            <p id="dash-acao-sugerida" class="text-sm font-bold text-blue-800">Aguardando análise</p>
+        </div>
+    </div>
+
+    <div class="relative h-72">
+        <canvas id="graficoPareto"></canvas>
+    </div>
+</div>
+        </section>
+
+        <!-- ABA 3: TABELA DE DADOS -->
+<section id="tela-tabela" class="hidden">
+
+    <!-- FILTROS DA TABELA (independentes do dashboard) -->
+    <div id="tab-filtros" class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-slate-200">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Filtrar Registros</h3>
+            <button type="button" id="tab-btn-limpar" class="text-sm text-blue-600 hover:underline">
+                Limpar Filtros
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <!-- Período -->
+            <div class="md:col-span-2">
+                <label class="text-xs font-semibold text-slate-500">Período</label>
+                <div class="flex gap-2 mt-1">
+                    <input type="date" id="tab-filtro-data-inicio"
+                           class="w-full border border-slate-300 rounded p-1.5 text-sm outline-none">
+                    <input type="date" id="tab-filtro-data-fim"
+                           class="w-full border border-slate-300 rounded p-1.5 text-sm outline-none">
+                </div>
+            </div>
+
+            <!-- OP -->
+            <div>
+                <label class="text-xs font-semibold text-slate-500">OP</label>
+                <input type="text" id="tab-filtro-op" placeholder="Buscar OP..."
+                       class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none">
+            </div>
+
+            <!-- Peça -->
+            <div>
+                <label class="text-xs font-semibold text-slate-500">Código da Peça</label>
+                <select id="tab-filtro-peca"
+                        class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+
+            <!-- GD&T -->
+            <div>
+                <label class="text-xs font-semibold text-slate-500">Caract. GD&amp;T</label>
+                <select id="tab-filtro-gdt"
+                        class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="text-xs font-semibold text-slate-500">Status</label>
+                <select id="tab-filtro-status"
+                        class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none">
+                    <option value="">Todos</option>
+                    <option value="CONFORME">CONFORME</option>
+                    <option value="RETRABALHO">RETRABALHO</option>
+                    <option value="SUCATA">SUCATA</option>
+                </select>
+            </div>
+
+            <!-- Inspetor -->
+            <div class="md:col-span-2">
+                <label class="text-xs font-semibold text-slate-500">Nome do Inspetor</label>
+                <input type="text" id="tab-filtro-inspetor" placeholder="Nome..."
+                       class="w-full border border-slate-300 rounded p-1.5 mt-1 text-sm outline-none">
+            </div>
+        </div>
+
+        <p id="tab-filtro-resumo" class="text-sm text-slate-500 mt-3"></p>
+    </div>
+
+    <!-- TABELA -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-slate-800">
+
+        <div class="flex flex-wrap justify-between items-center border-b pb-2 mb-4 gap-3">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Registros de Inspeção</h2>
+                <p class="text-xs text-slate-500 mt-1">Edição e exclusão serão implementadas em uma próxima versão.</p>
+            </div>
+            <span id="tab-info-registros" class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded font-semibold">
+                Carregando...
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-100 text-slate-700 border-b">
+                        <th class="p-3">Data</th>
+                        <th class="p-3">OP</th>
+                        <th class="p-3">Peça</th>
+                        <th class="p-3">GD&amp;T</th>
+                        <th class="p-3">Nominal (mm)</th>
+                        <th class="p-3">Medido (mm)</th>
+                        <th class="p-3">Status</th>
+                        <th class="p-3">Inspetor</th>
+                        <th class="p-3 text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tab-corpo" class="divide-y divide-slate-100">
+                    <!-- Preenchido via JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINAÇÃO -->
+        <div class="flex items-center justify-between mt-4 border-t pt-4">
+            <button type="button" id="tab-btn-anterior"
+                    class="px-4 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium hover:bg-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                ← Anterior
+            </button>
+            <span id="tab-info-pagina" class="text-sm text-slate-500">Página 1 de 1</span>
+            <button type="button" id="tab-btn-proxima"
+                    class="px-4 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium hover:bg-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                Próxima →
+            </button>
+        </div>
+    </div>
+</section>
+        
+        <!-- MODAL: CONFIRMAÇÃO DE EXCLUSÃO -->
+        <div id="modal-delete" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-xl shadow-lg w-96 text-center">
+                <h3 class="text-xl font-bold text-red-600 mb-2">Deseja Excluir o registro?</h3>
+                <p id="texto-delete-registro" class="text-slate-600 mb-6 border p-3 rounded bg-slate-50 font-mono text-sm"></p>
+                <input type="hidden" id="delete-id">
+                <div class="flex justify-center gap-4">
+                    <button onclick="fecharModalDelete()" class="px-4 py-2 bg-slate-200 rounded hover:bg-slate-300 font-semibold transition">Cancelar</button>
+                    <button onclick="confirmarDelete()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-semibold shadow transition">Sim, Excluir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: EDIÇÃO DE REGISTRO -->
+        <div id="modal-edit" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-xl shadow-lg w-[500px]">
+                <h3 class="text-xl font-bold text-blue-600 mb-4 border-b pb-2">Editar Inspeção</h3>
+                <form id="form-edit" class="space-y-4">
+                    <input type="hidden" id="edit-id">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-semibold">OP</label>
+                            <input type="text" id="edit-op" class="w-full border p-2 rounded outline-none" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold">Peça</label>
+                            <input type="text" id="edit-peca" class="w-full border p-2 rounded outline-none" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold">Valor Nominal</label>
+                            <input type="number" id="edit-nominal" step="0.001" class="w-full border p-2 rounded outline-none" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-blue-700">Valor Medido</label>
+                            <input type="number" id="edit-medido" step="0.001" class="w-full border border-blue-500 bg-blue-50 p-2 rounded outline-none" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold">Status Metrológico</label>
+                        <select id="edit-status" class="w-full border p-2 rounded font-bold outline-none" required>
+                            <option value="CONFORME" class="text-green-600">CONFORME</option>
+                            <option value="RETRABALHO" class="text-yellow-600">RETRABALHO</option>
+                            <option value="SUCATA" class="text-red-600">SUCATA</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button type="button" onclick="fecharModalEdit()" class="px-4 py-2 bg-slate-200 rounded font-semibold transition">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold shadow transition">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+</main>
+
+    <!-- Tailwind e Chart.js no <head> (ver passo 1) -->
+    
+    <script type="module">
+        import { iniciar as iniciarNavegacao } from './navegacao.js';
+        import { api } from './api.js';
+        import './dashboards.js';
+        import './apontamento.js';
+        import './tabela.js';
+
+        iniciarNavegacao();
+
+        api.addEventListener('atualizados', (e) => {
+            console.log('Registros carregados:', e.detail.registros.length);
+        });
+        api.carregar();
+    </script>
+</body>
+</html>
