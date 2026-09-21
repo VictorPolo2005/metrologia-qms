@@ -77,7 +77,7 @@ Os outros módulos **importam** o `api` e reagem aos eventos. Não há acoplamen
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/[seu-usuario]/metrologia-qms.git
+git clone https://github.com/VictorPolo2005/metrologia-qms.git
 cd metrologia-qms
 
 # 2. Configure suas credenciais do Supabase
