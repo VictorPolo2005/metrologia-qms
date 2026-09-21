@@ -10,7 +10,9 @@ Ferramenta interna para registro e análise de inspeções dimensionais GD&T em 
 
 ### Sistema em ação
 
-<video src="./docs/demo-qms.mp4" controls autoplay loop muted width="800"></video>
+<a href="https://www.youtube.com/watch?v=aBcDeFgHiJk" target="_blank">
+  <img src="https://img.youtube.com/vi/aBcDeFgHiJk/maxresdefault.jpg" alt="Clique para assistir ao vídeo" width="800">
+</a>
 
 ### Dashboard Executivo
 ![Dashboard com KPIs, gráficos e filtros reativos](./docs/dashboard.png)
