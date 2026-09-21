@@ -10,9 +10,12 @@ Ferramenta interna para registro e análise de inspeções dimensionais GD&T em 
 
 ### Sistema em ação
 
-<a href="https://www.youtube.com/watch?v=aBcDeFgHiJk" target="_blank">
-  <img src="https://img.youtube.com/vi/aBcDeFgHiJk/maxresdefault.jpg" alt="Clique para assistir ao vídeo" width="800">
+<a href="https://www.youtube.com/watch?v=IGFGjGDzrNI" target="_blank">
+  <img src="https://img.youtube.com/vi/IGFGjGDzrNI/maxresdefault.jpg" alt="Clique para assistir à demonstração" width="800">
 </a>
+
+▶️ **[Assista à demonstração completa (27s)](https://www.youtube.com/watch?v=IGFGjGDzrNI)**
+
 
 ### Dashboard Executivo
 ![Dashboard com KPIs, gráficos e filtros reativos](./docs/dashboard.png)
