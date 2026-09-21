@@ -2,8 +2,9 @@
 
 Ferramenta interna para registro e análise de inspeções dimensionais GD&T em peças aeronáuticas. Cobre todo o ciclo: apontamento em chão de fábrica, dashboards executivos e consulta analítica.
 
-> 🔗 **Demo online:** [main](https://github.com/VictorPolo2005/metrologia-qms)
-> 🎬 **Vídeo de demonstração:** [demo-qms.mp4](./docs/demo-qms.mp4)
+**Demo online:** https://victorpolo2005.github.io/metrologia-qms/
+
+> 🎬 **Vídeo de demonstração:** https://youtu.be/IGFGjGDzrNI
 > 📸 **Prints:** [`/docs`](./docs)
 
 ## 📸 Demonstração
