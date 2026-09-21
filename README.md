@@ -2,7 +2,7 @@
 
 Ferramenta interna para registro e análise de inspeções dimensionais GD&T em peças aeronáuticas. Cobre todo o ciclo: apontamento em chão de fábrica, dashboards executivos e consulta analítica.
 
-> 🔗 **Demo online:** [cole aqui o link do GitHub Pages após publicar]
+> 🔗 **Demo online:** main
 > 🎬 **Vídeo de demonstração:** [demo-qms.mp4](./docs/demo-qms.mp4)
 > 📸 **Prints:** [`/docs`](./docs)
 
